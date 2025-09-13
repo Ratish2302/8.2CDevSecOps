@@ -1,52 +1,61 @@
 pipeline {
-  agent any
-  options { timestamps() }
-  triggers {
-    // Auto-build when new commits are pushed to GitHub (polls every 2 minutes)
-    pollSCM('H/2 * * * *')
-  }
+    agent any
 
-  stages {
-    stage('Checkout') {
-      steps {
-        git branch: 'main', url: 'https://github.com/Ratish2302/8.2CDevSecOps.git'
-      }
+    stages {
+        stage('Checkout') {
+            steps {
+                echo 'Checking out source code...'
+                git branch: 'main',
+                    url: 'https://github.com/Ratish2302/8.2CDevSecOps.git'
+            }
+        }
+        stage('Install Dependencies') {
+            steps {
+                sh 'npm install'
+            }
+        }
+        stage('Run Tests') {
+            steps {
+                sh 'npm test'
+            }
+        }
+        stage('Generate Coverage Report') {
+            steps {
+                sh 'npm run coverage'
+            }
+        }
+        stage('Security Scan') {
+            steps {
+                sh 'npm audit || true'
+            }
+        }
     }
 
-    stage('Install Dependencies') {
-      steps {
-        // Install npm dependencies
-        sh 'npm install'
-      }
-    }
+    post {
+        success {
+            mail to: 'sharmaratish02@gmail.com',
+                 subject: "SUCCESS: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                 body: """
+Good news!
 
-    stage('Run Tests') {
-      steps {
-        // Run unit tests, continue even if they fail
-        sh 'npm test || true'
-      }
-    }
+Your Jenkins pipeline job '${env.JOB_NAME}' build #${env.BUILD_NUMBER} was SUCCESSFUL.
 
-    stage('Generate Coverage Report') {
-      steps {
-        // Generate coverage report
-        sh 'npm run coverage || true'
-      }
-    }
+You can view the full build details here:
+${env.BUILD_URL}
+                 """
+        }
 
-    stage('Security Scan (npm audit)') {
-      steps {
-        // Run npm audit for vulnerabilities
-        sh 'npm audit || true'
-      }
-    }
-  }
+        failure {
+            mail to: 'sharmaratish02@gmail.com',
+                 subject: "FAILED: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                 body: """
+Attention!
 
-  post {
-    always {
-      // Archive coverage report as artifact
-      archiveArtifacts artifacts: 'coverage/**', allowEmptyArchive: true
+Your Jenkins pipeline job '${env.JOB_NAME}' build #${env.BUILD_NUMBER} has FAILED.
+
+Check the console output here for details:
+${env.BUILD_URL}console
+                 """
+        }
     }
-  }
 }
-

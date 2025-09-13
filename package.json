@@ -12,7 +12,8 @@
     "start": "NODE_OPTIONS=--openssl-legacy-provider node app.js",
     "build": "browserify -r jquery > public/js/bundle.js",
     "cleanup": "mongo express-todo --eval 'db.todos.remove({});'",
-    "test": "snyk test"
+    "test": "tap tests/smoke.test.js",
+    "coverage": "nyc --reporter=lcov --reporter=text-summary npm test"
   },
   "dependencies": {
     "adm-zip": "0.4.7",
@@ -44,14 +45,15 @@
     "optional": "^0.1.3",
     "st": "0.2.4",
     "stream-buffers": "^3.0.1",
-    "tap": "^11.1.3",
     "typeorm": "^0.2.24",
     "validator": "^13.5.2"
   },
   "devDependencies": {
     "browserify": "^13.1.1",
     "nodemon": "^2.0.7",
-    "snyk": "^1.244.0"
+    "nyc": "^15.1.0",
+    "snyk": "^1.244.0",
+    "tap": "^16.3.10"
   },
   "license": "Apache-2.0"
 }
